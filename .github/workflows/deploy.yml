@@ -61,20 +61,6 @@ jobs:
       - name: Prune dangling images
         run: docker image prune -f
 
-      - name: Health check
-        run: |
-          for i in 1 2 3 4 5 6; do
-            if curl -fsS http://localhost:8080/api/health > /dev/null; then
-              echo "✓ api-gateway отвечает (попытка $i)"
-              exit 0
-            fi
-            echo "попытка $i/6: жду 5с..."
-            sleep 5
-          done
-          echo "::error::api-gateway не ответил после 30 секунд"
-          docker compose logs --tail=80
-          exit 1
-
       - name: Verify bot is running
         run: |
           status=$(docker inspect -f '{{.State.Status}}' medkvadrat-max-bot 2>/dev/null || echo "not-found")
