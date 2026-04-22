@@ -1,0 +1,76 @@
+# docker-compose.yml для продакшн-стенда МедКвадрат на 192.168.2.122
+#
+# Запуск:  ./deploy.sh      (при первичной установке и для ручного деплоя)
+# Логи:    docker compose logs -f [сервис]
+# Статус:  docker compose ps
+#
+# Оба образа тянутся из ghcr.io. Сборка идёт в GitHub Actions
+# в репозиториях medkvadrat-patient-api и medkvadrat-max-bot.
+
+services:
+  api-gateway:
+    image: ghcr.io/${GHCR_OWNER}/medkvadrat-patient-api:latest
+    container_name: medkvadrat-api-gateway
+    restart: unless-stopped
+    environment:
+      # --- MSSQL Medialog ---
+      DB_SERVER: ${DB_SERVER}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      # --- API ---
+      API_PORT: ":8080"
+      API_TOKEN: ${API_TOKEN}
+      DEFAULT_MODELS_ID: ${DEFAULT_MODELS_ID:-306}
+    ports:
+      # Наружу публикуем только для отладки и для возможности дёрнуть
+      # из других внутренних сервисов клиники. Если не нужно — убрать.
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/api/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    networks:
+      - internal
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  max-bot:
+    image: ghcr.io/${GHCR_OWNER}/medkvadrat-max-bot:latest
+    container_name: medkvadrat-max-bot
+    restart: unless-stopped
+    environment:
+      MAX_BOT_TOKEN: ${MAX_BOT_TOKEN}
+      # Внутри compose-сети api-gateway доступен по имени сервиса
+      GATEWAY_URL: http://api-gateway:8080
+      GATEWAY_TOKEN: ${API_TOKEN}
+      DB_PATH: /app/data/bot.db
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+    volumes:
+      # Именованный том для SQLite — переживает docker compose down и обновления образа.
+      # На хосте: /var/lib/docker/volumes/medkvadrat-bot-data/_data/bot.db
+      - bot-data:/app/data
+    networks:
+      - internal
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  internal:
+    driver: bridge
+    name: medkvadrat-internal
+
+volumes:
+  bot-data:
+    name: medkvadrat-bot-data
