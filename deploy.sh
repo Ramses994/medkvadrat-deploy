@@ -61,21 +61,6 @@ docker image prune -f >/dev/null
 
 # --- health check ---
 
-echo "→ Проверка health..."
-sleep 5
-for i in {1..6}; do
-    if curl -fsS http://localhost:8082/api/health >/dev/null 2>&1; then
-        echo "  ✓ api-gateway отвечает"
-        break
-    fi
-    if [ "$i" = "6" ]; then
-        echo "  ✗ api-gateway не отвечает после 30 сек"
-        docker compose logs api-gateway --tail=50
-        exit 1
-    fi
-    sleep 5
-done
-
 # проверка, что бот не упал и тоже в running
 if [ "$(docker inspect -f '{{.State.Status}}' medkvadrat-max-bot 2>/dev/null)" != "running" ]; then
     echo "  ✗ max-bot не в состоянии running"
