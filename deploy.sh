@@ -64,7 +64,7 @@ docker image prune -f >/dev/null
 echo "→ Проверка health..."
 sleep 5
 for i in {1..6}; do
-    if curl -fsS http://localhost:8080/api/health >/dev/null 2>&1; then
+    if curl -fsS http://localhost:8082/api/health >/dev/null 2>&1; then
         echo "  ✓ api-gateway отвечает"
         break
     fi
