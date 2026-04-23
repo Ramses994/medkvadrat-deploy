@@ -2,6 +2,16 @@
 
 Продакшн-стенд сети клиник МедКвадрат. Содержит `docker-compose.yml`, скрипт деплоя и GitHub Actions workflow для автодеплоя через self-hosted runner.
 
+## Контрибьютинг и процесс деплоя (`main`)
+
+Все изменения в этом репозитории попадают в **`main` только через pull request**. Прямой push в `main` не используем: в GitHub задайте **branch protection** для `main` (Settings → Branches → Add rule / Edit):
+
+- **Require a pull request before merging**
+- **Require approvals**: минимум 1
+- **Require status checks to pass before merging**: включите проверку **`compose-config / validate`** (workflow [.github/workflows/compose-config.yml](.github/workflows/compose-config.yml) — `docker compose config` на PR с тестовым `.env`).
+
+Self-hosted runner поднимает стек **после merge в `main`** (см. [.github/workflows/deploy.yml](.github/workflows/deploy.yml)). Некорректный `docker-compose.yml` не должен иметь возможности стать прод-конфигом без ревью.
+
 ## Где на сервере лежит compose и `.env`
 
 Документация ниже использует путь `/opt/medkvadrat/medkvadrat-deploy` как **рекомендуемый** для ручной установки. На части стендов его **нет**: self-hosted GitHub Actions runner клонирует репозиторий в **эфемерную рабочую директорию** при каждом деплое, например:
