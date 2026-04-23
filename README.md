@@ -2,6 +2,20 @@
 
 Продакшн-стенд сети клиник МедКвадрат. Содержит `docker-compose.yml`, скрипт деплоя и GitHub Actions workflow для автодеплоя через self-hosted runner.
 
+## Где на сервере лежит compose и `.env`
+
+Документация ниже использует путь `/opt/medkvadrat/medkvadrat-deploy` как **рекомендуемый** для ручной установки. На части стендов его **нет**: self-hosted GitHub Actions runner клонирует репозиторий в **эфемерную рабочую директорию** при каждом деплое, например:
+
+```text
+~/actions-runner-deploy/actions-runner/_work/medkvadrat-deploy/medkvadrat-deploy/
+```
+
+(точный путь зависит от пользователя и имени runner’а — уточните у админа.) **Именно оттуда** при автодеплое вызываются `./deploy.sh`, `docker compose pull` и читается `.env`, лежащий **рядом с `docker-compose.yml`** в этой же папке (не в `/opt/...`, если клона там нет).
+
+**Именованные тома Docker** (`medkvadrat-bot-data`, `medkvadrat-gateway-data` и т.д.) хранятся в `/var/lib/docker/volumes/` и **не зависят** от того, где лежит checkout: редеплой и `git pull` в рабочей папке runner’а **не сотрут** SQLite внутри томов.
+
+Операции вроде `docker compose stop api-gateway` выполняйте из каталога, где на этом сервере реально лежит актуальный `docker-compose.yml` (см. выше) или укажите файл явно: `docker compose -f /полный/путь/docker-compose.yml …`.
+
 ## Архитектура
 
 ```
@@ -34,7 +48,7 @@
 
 `api-gateway` в шаге 2+ пишет SQLite (`gateway.db`: сессии OTP, refresh tokens, rate limits). Без смонтированного тома и каталога контейнер уходит в рестарт-луп (`SQLITE_CANTOPEN` / code 14): директория не создана или путь только для чтения.
 
-1. `cd /opt/medkvadrat/medkvadrat-deploy && git pull`
+1. `cd` в каталог с `medkvadrat-deploy` **на вашем стенде** (часто `~/.../actions-runner/_work/.../medkvadrat-deploy/`, иначе `/opt/medkvadrat/medkvadrat-deploy` — см. раздел [выше](#где-на-сервере-лежит-compose-и-env)), затем `git pull`.
 2. Сверься с `.env.example`: скопируйте новые переменные в свой `.env`.
 3. Сгенерируйте секреты для режима `pilot` (или оставьте `AUTH_MODE=dev` на время теста без реальной СМС):
    ```bash
