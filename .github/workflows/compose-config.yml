@@ -1,0 +1,32 @@
+# Проверка синтаксиса docker-compose.yml на каждом PR в main.
+# Имя job используется как required status check в branch protection (например: "compose-config").
+name: compose-config
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    name: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Stub .env for compose config
+        run: |
+          cat > .env <<'EOF'
+          GHCR_OWNER=medkvadrat
+          DB_SERVER=127.0.0.1
+          DB_PORT=1433
+          DB_NAME=Medialog
+          DB_USER=test
+          DB_PASSWORD=test
+          API_TOKEN=00000000000000000000000000000000
+          MAX_BOT_TOKEN=test-token
+          JWT_SECRET=0000000000000000000000000000000000000000000000000000000000000000
+          OTP_HMAC_SECRET=1111111111111111111111111111111111111111111111111111111111111111
+          EOF
+
+      - name: docker compose config
+        run: docker compose config --quiet
