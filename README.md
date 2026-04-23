@@ -30,6 +30,22 @@
 
 Оба сервиса тянут образы из `ghcr.io`. Сборка идёт в GitHub Actions, деплой — через self-hosted runner, который подключён к этому серверу.
 
+## Upgrade: со стека «шаг 1» (только long poll) на «шаг 2+» (OTP, SQLite, /api/me)
+
+`api-gateway` в шаге 2+ пишет SQLite (`gateway.db`: сессии OTP, refresh tokens, rate limits). Без смонтированного тома и каталога контейнер уходит в рестарт-луп (`SQLITE_CANTOPEN` / code 14): директория не создана или путь только для чтения.
+
+1. `cd /opt/medkvadrat/medkvadrat-deploy && git pull`
+2. Сверься с `.env.example`: скопируйте новые переменные в свой `.env`.
+3. Сгенерируйте секреты для режима `pilot` (или оставьте `AUTH_MODE=dev` на время теста без реальной СМС):
+   ```bash
+   openssl rand -hex 32   # JWT_SECRET
+   openssl rand -hex 32   # OTP_HMAC_SECRET
+   ```
+4. При `AUTH_MODE=pilot` укажите `AUTH_PILOT_WHITELIST` (телефоны тестеров) и при необходимости блок `SMTP_*`.
+5. Выполните деплой: `./deploy.sh`
+
+После обновления у `api-gateway` появляется named volume `medkvadrat-gateway-data` с `gateway.db` в `/app/data`. Перед откатом на образ «шаг 1» снимите из `docker-compose` блок `GATEWAY_DB_PATH` / volume (или оставьте `AUTH_MODE=dev` и пусть SQLite создаётся пустым).
+
 ## Первичная установка на пустой сервер
 
 Предполагается Ubuntu 22.04/24.04 или Debian 12. Все команды — от пользователя с sudo.

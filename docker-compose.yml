@@ -23,6 +23,26 @@ services:
       API_PORT: ":8080"
       API_TOKEN: ${API_TOKEN}
       DEFAULT_MODELS_ID: ${DEFAULT_MODELS_ID:-306}
+      CANCEL_MIN_HOURS_BEFORE: ${CANCEL_MIN_HOURS_BEFORE:-24}
+      # SQLite (OTP, refresh tokens, rate limits) — must be on a mounted volume
+      GATEWAY_DB_PATH: /app/data/gateway.db
+      # Auth (step 2+): not dev
+      # Use pilot + JWT/OTP in production; dev keeps one-shot OTP without secrets.
+      AUTH_MODE: ${AUTH_MODE:-dev}
+      AUTH_PILOT_WHITELIST: ${AUTH_PILOT_WHITELIST:-}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ISSUER: ${JWT_ISSUER:-medkvadrat-patient-api}
+      OTP_HMAC_SECRET: ${OTP_HMAC_SECRET}
+      OTP_TTL_SECONDS: ${OTP_TTL_SECONDS:-300}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-}
+      SMTP_FROM_NAME: ${SMTP_FROM_NAME:-МедКвадрат}
+      SMTP_TLS: ${SMTP_TLS:-starttls}
+    volumes:
+      - gateway-data:/app/data
     ports:
       # Наружу публикуем только для отладки и для возможности дёрнуть
       # из других внутренних сервисов клиники. Если не нужно — убрать.
@@ -74,3 +94,5 @@ networks:
 volumes:
   bot-data:
     name: medkvadrat-bot-data
+  gateway-data:
+    name: medkvadrat-gateway-data
