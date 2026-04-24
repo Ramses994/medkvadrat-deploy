@@ -209,6 +209,10 @@ docker run --rm \
 - [ ] Порт 8080 закрыт на файрволе клиники от внешнего мира (только LAN)
 - [ ] Регулярный бэкап SQLite
 
+## Known gotchas (кратко)
+
+Полный список уроков первого деплоя: [docs/LESSONS_LEARNED.md](docs/LESSONS_LEARNED.md) — PAT/GHCR, `nobody` (65534) и права на volume, утечка секретов через `docker compose config`, SSH для `git pull` на стенде.
+
 ## Частые ошибки
 
 **`docker compose pull` → `denied: permission_denied`** — образ приватный, не прошёл `docker login ghcr.io`. Для self-hosted runner это делается в workflow; для ручного деплоя экспортировать `GHCR_TOKEN` и `GHCR_USER` перед запуском `./deploy.sh`.
