@@ -1,4 +1,4 @@
-# docker-compose.yml для продакшн-стенда МедКвадрат на 192.168.2.122
+# docker-compose.yml для продакшн-стенда МедКвадрат на 192.168.2.104
 #
 # Запуск:  ./deploy.sh      (при первичной установке и для ручного деплоя)
 # Логи:    docker compose logs -f [сервис]
@@ -19,6 +19,14 @@ services:
       DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
+      DB_RW_USER: ${DB_RW_USER:-}
+      DB_RW_PASSWORD: ${DB_RW_PASSWORD:-}
+      DB_APP_NAME: ${DB_APP_NAME:-medkvadrat-patient-api}
+      MEDIALOG_WRITE_ENABLED: ${MEDIALOG_WRITE_ENABLED:-false}
+      MEDIALOG_WRITE_ALLOW_PATIENTS: ${MEDIALOG_WRITE_ALLOW_PATIENTS:-}
+      MEDIALOG_WRITE_ALLOW_PL_SUBJ: ${MEDIALOG_WRITE_ALLOW_PL_SUBJ:-}
+      MOTCONSU_POLL_ENABLED: ${MOTCONSU_POLL_ENABLED:-false}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-}
       # --- API ---
       API_PORT: ":8080"
       API_TOKEN: ${API_TOKEN}
