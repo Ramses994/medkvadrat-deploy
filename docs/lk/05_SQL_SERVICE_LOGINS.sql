@@ -220,3 +220,14 @@ GO
       а прямой INSERT/UPDATE из API невозможен. После каждого обновления
       Медиалога — повторная проверка (новые процедуры без DENY).
    ------------------------------------------------------------------------- */
+
+
+/* ---------- 6. Проверка для LK-2a: может ли svc_patient_api_ro читать штатную
+   функцию свободного времени (ничего не меняет). Ожидается CAN_SELECT = 1.
+   Если 0 — сообщить: для LK-2a понадобится GRANT SELECT на эту функцию. ------- */
+USE [Medialog];
+EXECUTE AS USER = N'svc_patient_api_ro';
+SELECT HAS_PERMS_BY_NAME(N'[dbo].[pl_TelemedGetAvaliableSlots]', 'OBJECT', 'SELECT') AS CAN_SELECT_SLOTS_TVF,
+       HAS_PERMS_BY_NAME(N'[dbo].[pl_GetMedecinGridFunc]', 'OBJECT', 'SELECT')       AS CAN_SELECT_GRID_TVF;
+REVERT;
+GO

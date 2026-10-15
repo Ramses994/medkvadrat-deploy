@@ -1,6 +1,6 @@
 /* =====================================================================
    Проверки перед разработкой ЛК — ТОЛЬКО ЧТЕНИЕ. Версия 1.3 — 15.10.2026
-   (S0–S18 выполнены 15.10.2026; добавлен S19).
+   (S0–S20 выполнены 15.10.2026; добавлен S21).
    Объединены пакет Claude (V*) и сверка ChatGPT (C*).
 
    База Medialog, сервер 192.168.2.229, SQL Server 2014. Запускать в SSMS
@@ -546,6 +546,58 @@ SELECT c.name AS column_name, t.name AS data_type
 FROM sys.columns c JOIN sys.types t ON t.user_type_id = c.user_type_id
 WHERE c.object_id = OBJECT_ID(N'dbo.HL7_EVENTS')
 ORDER BY c.column_id;
+GO
+
+/* ---------------------------------------------------------------------
+   S20 (Q17; добавлен 15.10.2026). Подтвердить, что внешний сервис
+   пользователя 2 пишет через pl_AddVisitContext: строка PLANNING_USER_EXT
+   создаётся этой процедурой. Сравнение доли таких строк по авторам за 30 дней.
+   --------------------------------------------------------------------- */
+SELECT CASE WHEN p.KRN_CREATE_USER_ID = 2 THEN '2 Амбулаторные (сервис pd)' ELSE 'сотрудники в клиенте' END AS CREATOR,
+       COUNT(*) AS N,
+       SUM(CASE WHEN ue.PLANNING_ID IS NOT NULL THEN 1 ELSE 0 END) AS WITH_USER_EXT
+FROM dbo.PLANNING p
+LEFT JOIN (SELECT DISTINCT PLANNING_ID FROM dbo.PLANNING_USER_EXT) ue ON ue.PLANNING_ID = p.PLANNING_ID
+WHERE p.CREATE_DATE_TIME >= DATEADD(day, -30, CONVERT(date, GETDATE()))
+  AND (p.STATUS = 0 OR p.STATUS IS NULL)
+  AND p.SOURCE_PLANNING_ID IS NULL
+GROUP BY CASE WHEN p.KRN_CREATE_USER_ID = 2 THEN '2 Амбулаторные (сервис pd)' ELSE 'сотрудники в клиенте' END;
+
+/* Как сервис pd отменяет: записи пользователя 2, отменённые за 30 дней, и кто отменил */
+SELECT CASE WHEN ISNULL(CANCELLED, 0) = 1 THEN 'CANCELLED=1' WHEN STATUS = 1 THEN 'STATUS=1' ELSE 'действует' END AS STATE,
+       CASE WHEN MEDECINS_MODIFY_ID = 2 THEN 'изменил пользователь 2' ELSE 'изменил сотрудник' END AS MODIFIER,
+       COUNT(*) AS N
+FROM dbo.PLANNING
+WHERE KRN_CREATE_USER_ID = 2
+  AND CREATE_DATE_TIME >= DATEADD(day, -30, CONVERT(date, GETDATE()))
+  AND SOURCE_PLANNING_ID IS NULL
+GROUP BY CASE WHEN ISNULL(CANCELLED, 0) = 1 THEN 'CANCELLED=1' WHEN STATUS = 1 THEN 'STATUS=1' ELSE 'действует' END,
+         CASE WHEN MEDECINS_MODIFY_ID = 2 THEN 'изменил пользователь 2' ELSE 'изменил сотрудник' END;
+GO
+
+/* ---------------------------------------------------------------------
+   S21 (Q13; добавлен 15.10.2026). Кандидаты в тестовую линию расписания и
+   как расписание выгружается на сайт (чтобы тестовая линия туда не попала).
+   --------------------------------------------------------------------- */
+/* 1. Линии, похожие на тестовые (по названию), с признаками WEB и архива */
+SELECT ps.PL_SUBJ_ID, ps.NAME, ps.MEDECINS_ID, ps.FM_INTORG_ID,
+       ISNULL(ps.ARCHIVE, 0) AS ARCHIVE, ISNULL(ps.WEB_ACCESS, 0) AS WEB_ACCESS,
+       ps.PL_AGEND_ID1,
+       (SELECT COUNT(*) FROM dbo.PLANNING p
+         WHERE p.PL_SUBJ_ID = ps.PL_SUBJ_ID
+           AND p.DATE_CONS >= DATEADD(day, -90, CONVERT(date, GETDATE()))) AS RECORDS_90D
+FROM dbo.PL_SUBJ ps
+WHERE ps.NAME LIKE N'%тест%' OR ps.NAME LIKE N'%test%' OR ps.NAME LIKE N'%ааа%';
+
+/* 2. Виды приёма с WEB-доступом (нужны для записи с CR_WEB=1): сколько их */
+SELECT ISNULL(WEB_ACCESS, 0) AS WEB_ACCESS, COUNT(*) AS PL_EXAM_CNT
+FROM dbo.PL_EXAM GROUP BY ISNULL(WEB_ACCESS, 0);
+
+/* 3. Задание агента «выгрузка расписания на сайт»: текст шагов (фильтр линий) */
+SELECT j.name AS job_name, j.enabled, s.step_id, s.step_name, s.subsystem, s.command
+FROM msdb.dbo.sysjobs j
+JOIN msdb.dbo.sysjobsteps s ON s.job_id = j.job_id
+WHERE j.name LIKE N'%planning%' OR j.name LIKE N'%site%' OR j.name LIKE N'%docdoc%';
 GO
 
 /* Блоки сверки ChatGPT, не включённые сюда:

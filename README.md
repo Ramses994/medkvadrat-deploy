@@ -6,10 +6,6 @@
 
 Документация и процесс разработки ЛК: [docs/lk/01_TZ_PATIENT_CABINET.md](docs/lk/01_TZ_PATIENT_CABINET.md), [база знаний Medialog](docs/lk/00_KNOWLEDGE_BASE_MEDIALOG.md), [workflow и PR](docs/lk/02_WORKFLOW.md), [runbook записи](docs/lk/04_RUNBOOK_BOOKING_CAPTURE.md), [SQL-логины](docs/lk/05_SQL_SERVICE_LOGINS.sql).
 
-## Личный кабинет пациента
-
-Документация и процесс разработки ЛК: [docs/lk/01_TZ_PATIENT_CABINET.md](docs/lk/01_TZ_PATIENT_CABINET.md), [база знаний Medialog](docs/lk/00_KNOWLEDGE_BASE_MEDIALOG.md), [workflow и PR](docs/lk/02_WORKFLOW.md), [runbook записи](docs/lk/04_RUNBOOK_BOOKING_CAPTURE.md), [SQL-логины](docs/lk/05_SQL_SERVICE_LOGINS.sql).
-
 ## Контрибьютинг и процесс деплоя (`main`)
 
 Все изменения в этом репозитории попадают в **`main` только через pull request**. Прямой push в `main` не используем: в GitHub задайте **branch protection** для `main` (Settings → Branches → Add rule / Edit):
