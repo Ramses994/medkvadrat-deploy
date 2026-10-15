@@ -79,6 +79,7 @@ services:
       GATEWAY_URL: http://api-gateway:8080
       GATEWAY_TOKEN: ${API_TOKEN}
       DB_PATH: /app/data/bot.db
+      BOT_LINK_ALLOWLIST_PATIENTS: ${BOT_LINK_ALLOWLIST_PATIENTS:-}
     depends_on:
       api-gateway:
         condition: service_healthy
