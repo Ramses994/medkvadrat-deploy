@@ -4,7 +4,7 @@
 
 ## Личный кабинет пациента
 
-Документация и процесс разработки ЛК: [docs/lk/01_TZ_PATIENT_CABINET.md](docs/lk/01_TZ_PATIENT_CABINET.md), [база знаний Medialog](docs/lk/00_KNOWLEDGE_BASE_MEDIALOG.md), [workflow и PR](docs/lk/02_WORKFLOW.md), [runbook записи](docs/lk/04_RUNBOOK_BOOKING_CAPTURE.md), [SQL-логины](docs/lk/05_SQL_SERVICE_LOGINS.sql).
+Документация и процесс разработки ЛК: [docs/lk/01_TZ_PATIENT_CABINET.md](docs/lk/01_TZ_PATIENT_CABINET.md), [база знаний Medialog](docs/lk/00_KNOWLEDGE_BASE_MEDIALOG.md), [workflow и PR](docs/lk/02_WORKFLOW.md), [runbook записи](docs/lk/04_RUNBOOK_BOOKING_CAPTURE.md), [SQL-логины](docs/lk/05_SQL_SERVICE_LOGINS.sql). Пустой `BOT_LINK_ALLOWLIST_PATIENTS` или `REMINDER_ALLOWLIST_PATIENTS` — напоминания и «Вы записаны» никому.
 
 ## Контрибьютинг и процесс деплоя (`main`)
 
