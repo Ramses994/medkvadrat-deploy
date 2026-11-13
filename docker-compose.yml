@@ -49,6 +49,8 @@ services:
       # Use pilot + JWT/OTP in production; dev keeps one-shot OTP without secrets.
       AUTH_MODE: ${AUTH_MODE:-dev}
       AUTH_PILOT_WHITELIST: ${AUTH_PILOT_WHITELIST:-}
+      # Required when AUTH_MODE=pilot: the API does not start without it.
+      AUTH_PILOT_CODE: ${AUTH_PILOT_CODE:-}
       JWT_SECRET: ${JWT_SECRET}
       JWT_ISSUER: ${JWT_ISSUER:-medkvadrat-patient-api}
       OTP_HMAC_SECRET: ${OTP_HMAC_SECRET}
