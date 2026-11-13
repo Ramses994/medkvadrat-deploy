@@ -4,8 +4,11 @@
 # Логи:    docker compose logs -f [сервис]
 # Статус:  docker compose ps
 #
-# Оба образа тянутся из ghcr.io. Сборка идёт в GitHub Actions
-# в репозиториях medkvadrat-patient-api и medkvadrat-max-bot.
+# Образы тянутся из ghcr.io. Сборка идёт в GitHub Actions
+# в репозиториях medkvadrat-patient-api, medkvadrat-max-bot и medkvadrat-patient-web.
+#
+# patient-web (личный кабинет пациента) — под профилем compose «lk»: без профиля
+# не тянется и не запускается. Включение — COMPOSE_PROFILES=lk в .env.
 
 services:
   api-gateway:
@@ -55,6 +58,9 @@ services:
       JWT_ISSUER: ${JWT_ISSUER:-medkvadrat-patient-api}
       OTP_HMAC_SECRET: ${OTP_HMAC_SECRET}
       OTP_TTL_SECONDS: ${OTP_TTL_SECONDS:-300}
+      # Web cabinet session cookie lk_refresh. Stand without TLS: LK_COOKIE_SECURE=false.
+      LK_COOKIE_SECURE: ${LK_COOKIE_SECURE:-true}
+      LK_WEB_REFRESH_TTL_HOURS: ${LK_WEB_REFRESH_TTL_HOURS:-12}
       DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD:-}
       DASHBOARD_ADMIN_LOGIN: ${DASHBOARD_ADMIN_LOGIN:-admin}
       DASHBOARD_SECRET: ${DASHBOARD_SECRET:-}
@@ -113,6 +119,40 @@ services:
       # Именованный том для SQLite — переживает docker compose down и обновления образа.
       # На хосте: /var/lib/docker/volumes/medkvadrat-bot-data/_data/bot.db
       - bot-data:/app/data
+    networks:
+      - internal
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  patient-web:
+    # Личный кабинет пациента (только чтение): статика + прокси /api/ на api-gateway, один источник.
+    image: ghcr.io/${GHCR_OWNER}/medkvadrat-patient-web:latest
+    container_name: medkvadrat-patient-web
+    profiles: ["lk"]
+    restart: unless-stopped
+    environment:
+      # Адрес API внутри compose-сети; nginx проксирует /api/ сюда.
+      API_UPSTREAM: http://api-gateway:8080
+      # Телефон клиники на экране «Предстоящих записей нет».
+      CLINIC_PHONE: ${LK_CLINIC_PHONE:-}
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+    ports:
+      - "${PATIENT_WEB_PORT:-8083}:8080"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/healthz"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     networks:
       - internal
     logging:

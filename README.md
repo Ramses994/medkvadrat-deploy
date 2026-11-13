@@ -6,6 +6,8 @@
 
 Документация и процесс разработки ЛК: [docs/lk/01_TZ_PATIENT_CABINET.md](docs/lk/01_TZ_PATIENT_CABINET.md), [база знаний Medialog](docs/lk/00_KNOWLEDGE_BASE_MEDIALOG.md), [workflow и PR](docs/lk/02_WORKFLOW.md), [runbook записи](docs/lk/04_RUNBOOK_BOOKING_CAPTURE.md), [SQL-логины](docs/lk/05_SQL_SERVICE_LOGINS.sql). Пустой `BOT_LINK_ALLOWLIST_PATIENTS` или `REMINDER_ALLOWLIST_PATIENTS` — напоминания и «Вы записаны» никому.
 
+Веб-кабинет пациента (`patient-web`, образ `ghcr.io/${GHCR_OWNER}/medkvadrat-patient-web:latest`) — под профилем compose `lk`: без `COMPOSE_PROFILES=lk` в `.env` он не тянется и не запускается, автодеплой его не трогает. Порт стенда — `PATIENT_WEB_PORT` (8083); `/api/` nginx кабинета проксирует на `api-gateway`, кабинет и API — один источник. На стенде без TLS — `LK_COOKIE_SECURE=false`.
+
 ## Контрибьютинг и процесс деплоя (`main`)
 
 Все изменения в этом репозитории попадают в **`main` только через pull request**. Прямой push в `main` не используем: в GitHub задайте **branch protection** для `main` (Settings → Branches → Add rule / Edit):
