@@ -69,7 +69,8 @@ Self-hosted runner поднимает стек **после merge в `main`** (�
    openssl rand -hex 32   # JWT_SECRET
    openssl rand -hex 32   # OTP_HMAC_SECRET
    ```
-4. При `AUTH_MODE=pilot` укажите `AUTH_PILOT_WHITELIST` (телефоны тестеров) и при необходимости блок `SMTP_*`.
+4. При `AUTH_MODE=pilot` укажите `AUTH_PILOT_WHITELIST` (телефоны тестеров), `AUTH_PILOT_CODE` (код входа для них: не короче 12 символов, только цифры и латиница; без него API не стартует) и при необходимости блок `SMTP_*`.
+   Проверка, что код дошёл до контейнера, без вывода значения: `docker exec medkvadrat-api-gateway sh -c 'test -n "$AUTH_PILOT_CODE" && echo set'`.
 5. Выполните деплой: `./deploy.sh`
 
 После обновления у `api-gateway` появляется named volume `medkvadrat-gateway-data` с `gateway.db` в `/app/data`. Перед откатом на образ «шаг 1» снимите из `docker-compose` блок `GATEWAY_DB_PATH` / volume (или оставьте `AUTH_MODE=dev` и пусть SQLite создаётся пустым).
