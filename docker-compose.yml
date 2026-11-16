@@ -61,6 +61,9 @@ services:
       # Web cabinet session cookie lk_refresh. Stand without TLS: LK_COOKIE_SECURE=false.
       LK_COOKIE_SECURE: ${LK_COOKIE_SECURE:-true}
       LK_WEB_REFRESH_TTL_HOURS: ${LK_WEB_REFRESH_TTL_HOURS:-12}
+      LK_WEB_IDLE_MIN: ${LK_WEB_IDLE_MIN:-20}
+      # Browser Origin(s) for X-LK-Client: web. Empty → web auth routes answer 403.
+      LK_WEB_ORIGINS: ${LK_WEB_ORIGINS:-}
       DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD:-}
       DASHBOARD_ADMIN_LOGIN: ${DASHBOARD_ADMIN_LOGIN:-admin}
       DASHBOARD_SECRET: ${DASHBOARD_SECRET:-}
