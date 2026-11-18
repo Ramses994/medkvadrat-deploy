@@ -30,3 +30,13 @@ jobs:
 
       - name: docker compose config
         run: docker compose config --quiet
+
+      # patient-web is under the "lk" profile; config does not pull images, so it passes before the image exists.
+      - name: docker compose config (profile lk)
+        run: |
+          docker compose --profile lk config --quiet
+          docker compose --profile lk config --services | grep -qx patient-web
+          if docker compose config --services | grep -qx patient-web; then
+            echo "patient-web must not run without the lk profile"
+            exit 1
+          fi
