@@ -141,11 +141,17 @@ services:
       API_UPSTREAM: http://api-gateway:8080
       # Телефон клиники на экране «Предстоящих записей нет».
       CLINIC_PHONE: ${LK_CLINIC_PHONE:-}
+      # Публичный https://… origin для редиректа с :8080 при смонтированных TLS-файлах.
+      PUBLIC_ORIGIN: ${LK_PUBLIC_ORIGIN:-}
     depends_on:
       api-gateway:
         condition: service_healthy
+    volumes:
+      # tls.crt (цепочка) + tls.key; оба есть → HTTPS :8443. Пустой каталог → только HTTP.
+      - ${LK_TLS_DIR:-./lk-tls}:/etc/nginx/tls:ro
     ports:
       - "${PATIENT_WEB_PORT:-8083}:8080"
+      - "${PATIENT_WEB_TLS_PORT:-8443}:8443"
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/healthz"]
       interval: 30s
