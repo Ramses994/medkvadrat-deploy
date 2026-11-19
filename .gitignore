@@ -3,3 +3,8 @@
 /logs/
 /data/
 docs/lk/tools/results/
+# Локальные/стендовые сертификаты кабинета (не коммитить ключи и CRT)
+/lk-tls/
+*.crt
+*.key
+*.pem
